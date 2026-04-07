@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Locale = 'ko' | 'en';
 type SourceCategory = 'chatgpt-gpts' | 'chatgpt-projects' | 'gemini-gems';
@@ -12,13 +12,24 @@ type LinkItem = {
   description: string;
   category: SourceCategory;
   pinned: boolean;
+  colorIdx: number;
 };
 
-// 카테고리별 색상과 아이콘
-const categoryMeta: Record<SourceCategory, { icon: string; bg: string; border: string; text: string }> = {
-  'chatgpt-gpts': { icon: '🤖', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700' },
-  'chatgpt-projects': { icon: '💬', bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700' },
-  'gemini-gems': { icon: '💎', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700' },
+// 카드 배경색 팔레트
+const cardColors = [
+  { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700' },
+  { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700' },
+  { bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700' },
+  { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700' },
+  { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+  { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700' },
+];
+
+// 카테고리 아이콘
+const categoryIcons: Record<SourceCategory, string> = {
+  'chatgpt-gpts': '🤖',
+  'chatgpt-projects': '💬',
+  'gemini-gems': '💎',
 };
 
 const labels = {
@@ -35,12 +46,7 @@ const labels = {
     cancel: '취소',
     emptyTitle: '아직 등록된 링크가 없어요',
     emptyDesc: '위의 "새 링크 추가" 버튼으로 자주 쓰는 AI 도구를 등록해보세요.',
-    pin: '고정',
-    unpin: '고정 해제',
-    delete: '삭제',
-    open: '열기',
     all: '전체',
-    lang: 'KO',
     categories: {
       'chatgpt-gpts': 'ChatGPT GPTs',
       'chatgpt-projects': 'ChatGPT 프로젝트',
@@ -60,12 +66,7 @@ const labels = {
     cancel: 'Cancel',
     emptyTitle: 'No links yet',
     emptyDesc: 'Click "Add new link" to register your favorite AI tools.',
-    pin: 'Pin',
-    unpin: 'Unpin',
-    delete: 'Delete',
-    open: 'Open',
     all: 'All',
-    lang: 'EN',
     categories: {
       'chatgpt-gpts': 'ChatGPT GPTs',
       'chatgpt-projects': 'ChatGPT Projects',
@@ -82,6 +83,7 @@ const starterLinks: LinkItem[] = [
     description: '한미냥 운영 문구와 공지 초안 정리',
     category: 'chatgpt-gpts',
     pinned: true,
+    colorIdx: 0,
   },
   {
     id: '2',
@@ -90,22 +92,23 @@ const starterLinks: LinkItem[] = [
     description: '상세페이지 문안과 구성 초안',
     category: 'chatgpt-projects',
     pinned: false,
+    colorIdx: 1,
   },
 ];
 
-const STORAGE_KEY = 'okj-ai-links-v3';
-const LOCALE_KEY = 'okj-ai-locale-v3';
+const STORAGE_KEY = 'okj-ai-links-v4';
+const LOCALE_KEY = 'okj-ai-locale-v4';
 
 export default function Home() {
   const [locale, setLocale] = useState<Locale>('ko');
   const [links, setLinks] = useState<LinkItem[]>(starterLinks);
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState<SourceCategory | 'all'>('all');
-  const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
 
   // 드래그 앤 드롭 상태
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const didDrag = useRef(false);
 
   // 모달 폼 상태
   const [formUrl, setFormUrl] = useState('');
@@ -129,13 +132,6 @@ export default function Home() {
   useEffect(() => { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(links)); }, [links]);
   useEffect(() => { window.localStorage.setItem(LOCALE_KEY, locale); }, [locale]);
 
-  // 외부 클릭시 컨텍스트 메뉴 닫기
-  useEffect(() => {
-    const handler = () => setContextMenu(null);
-    window.addEventListener('click', handler);
-    return () => window.removeEventListener('click', handler);
-  }, []);
-
   // 필터 + 정렬 (고정 항목 먼저)
   const displayed = useMemo(() => {
     const filtered = filter === 'all' ? links : links.filter((l) => l.category === filter);
@@ -155,6 +151,7 @@ export default function Home() {
       description: formDesc.trim(),
       category: formCategory,
       pinned: false,
+      colorIdx: links.length % cardColors.length,
     };
 
     setLinks((prev) => [item, ...prev]);
@@ -185,9 +182,15 @@ export default function Home() {
     setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, pinned: !l.pinned } : l)));
   }
 
+  function cycleColor(id: string) {
+    setLinks((prev) => prev.map((l) => {
+      if (l.id !== id) return l;
+      return { ...l, colorIdx: (l.colorIdx + 1) % cardColors.length };
+    }));
+  }
+
   function deleteLink(id: string) {
     setLinks((prev) => prev.filter((l) => l.id !== id));
-    setContextMenu(null);
   }
 
   return (
@@ -227,7 +230,7 @@ export default function Home() {
           >
             {text.all}
           </button>
-          {(Object.keys(categoryMeta) as SourceCategory[]).map((cat) => (
+          {(Object.keys(categoryIcons) as SourceCategory[]).map((cat) => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
@@ -235,7 +238,7 @@ export default function Home() {
                 filter === cat ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
-              {categoryMeta[cat].icon} {text.categories[cat]}
+              {categoryIcons[cat]} {text.categories[cat]}
             </button>
           ))}
         </div>
@@ -252,93 +255,86 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {displayed.map((item) => {
-              const meta = categoryMeta[item.category];
+              const color = cardColors[item.colorIdx] || cardColors[0];
               const isDragOver = dragOverId === item.id && draggingId !== item.id;
               return (
                 <div
                   key={item.id}
                   draggable
-                  onDragStart={() => setDraggingId(item.id)}
-                  onDragEnd={() => { setDraggingId(null); setDragOverId(null); }}
+                  onDragStart={() => { setDraggingId(item.id); didDrag.current = true; }}
+                  onDragEnd={() => { setDraggingId(null); setDragOverId(null); setTimeout(() => { didDrag.current = false; }, 0); }}
                   onDragOver={(e) => { e.preventDefault(); setDragOverId(item.id); }}
                   onDragLeave={() => setDragOverId(null)}
                   onDrop={(e) => { e.preventDefault(); handleDrop(item.id); }}
-                  onClick={() => window.open(item.url, '_blank')}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setContextMenu({ id: item.id, x: e.clientX, y: e.clientY });
-                  }}
-                  className={`group relative flex aspect-square cursor-grab flex-col items-center justify-center rounded-2xl border-2 p-4 text-center transition active:cursor-grabbing ${
+                  className={`group relative flex aspect-square cursor-grab flex-col rounded-2xl border-2 p-4 transition active:cursor-grabbing ${
                     draggingId === item.id
-                      ? 'opacity-40'
+                      ? 'opacity-40 scale-95'
                       : isDragOver
-                        ? `${meta.bg} ${meta.border} -translate-y-1 shadow-lg ring-2 ring-slate-400`
-                        : `${meta.bg} ${meta.border} hover:-translate-y-1 hover:shadow-lg`
+                        ? `${color.bg} ${color.border} -translate-y-1 shadow-lg ring-2 ring-slate-400`
+                        : `${color.bg} ${color.border} hover:shadow-md`
                   }`}
                 >
-                  {/* 고정 표시 */}
-                  {item.pinned && (
-                    <span className="absolute right-2 top-2 text-sm">📌</span>
-                  )}
+                  {/* 상단: 핀 표시 + 액션 버튼들 */}
+                  <div className="flex items-start justify-between">
+                    <span className="text-2xl">{categoryIcons[item.category]}</span>
+                    <div className="flex items-center gap-1">
+                      {item.pinned && <span className="text-xs">📌</span>}
+                    </div>
+                  </div>
 
-                  {/* 카테고리 아이콘 */}
-                  <span className="mb-3 text-3xl">{meta.icon}</span>
+                  {/* 중앙: 제목 + 설명 (클릭하면 URL 열기) */}
+                  <div
+                    className="mt-2 flex-1 cursor-pointer"
+                    onClick={() => { if (!didDrag.current) window.open(item.url, '_blank'); }}
+                  >
+                    <h3 className="line-clamp-2 text-sm font-semibold text-slate-800">
+                      {item.title}
+                    </h3>
+                    {item.description && (
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
 
-                  {/* 제목 */}
-                  <h3 className="line-clamp-2 text-sm font-semibold text-slate-800">
-                    {item.title}
-                  </h3>
-
-                  {/* 설명 */}
-                  {item.description && (
-                    <p className="mt-1.5 line-clamp-2 text-xs text-slate-500">
-                      {item.description}
-                    </p>
-                  )}
-
-                  {/* 카테고리 뱃지 */}
-                  <span className={`mt-3 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${meta.text} ${meta.bg} border ${meta.border}`}>
-                    {text.categories[item.category]}
-                  </span>
+                  {/* 하단: 액션 버튼 바 */}
+                  <div className="mt-2 flex items-center justify-between border-t border-slate-200/60 pt-2">
+                    <span className={`text-[10px] font-medium ${color.text}`}>
+                      {text.categories[item.category]}
+                    </span>
+                    <div className="flex gap-0.5">
+                      {/* 핀 고정/해제 */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); togglePin(item.id); }}
+                        className={`rounded-md p-1.5 text-xs transition hover:bg-white/80 ${item.pinned ? 'text-amber-600' : 'text-slate-400'}`}
+                        title={item.pinned ? '고정 해제' : '고정'}
+                      >
+                        📌
+                      </button>
+                      {/* 색 변경 */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); cycleColor(item.id); }}
+                        className="rounded-md p-1.5 text-xs text-slate-400 transition hover:bg-white/80"
+                        title="색 바꾸기"
+                      >
+                        🎨
+                      </button>
+                      {/* 삭제 */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteLink(item.id); }}
+                        className="rounded-md p-1.5 text-xs text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+                        title="삭제"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
       </div>
-
-      {/* 컨텍스트 메뉴 (우클릭) */}
-      {contextMenu && (
-        <div
-          className="fixed z-50 min-w-[140px] rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => {
-              const item = links.find((l) => l.id === contextMenu.id);
-              if (item) window.open(item.url, '_blank');
-              setContextMenu(null);
-            }}
-            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-          >
-            🔗 {text.open}
-          </button>
-          <button
-            onClick={() => { togglePin(contextMenu.id); setContextMenu(null); }}
-            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-          >
-            📌 {links.find((l) => l.id === contextMenu.id)?.pinned ? text.unpin : text.pin}
-          </button>
-          <div className="my-1 border-t border-slate-100" />
-          <button
-            onClick={() => deleteLink(contextMenu.id)}
-            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-          >
-            🗑️ {text.delete}
-          </button>
-        </div>
-      )}
 
       {/* 추가 모달 */}
       {showModal && (
@@ -350,7 +346,6 @@ export default function Home() {
             <h2 className="mb-5 text-lg font-bold text-slate-900">{text.modalTitle}</h2>
 
             <div className="space-y-4">
-              {/* URL 입력 */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">{text.linkLabel}</label>
                 <input
@@ -361,7 +356,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* 제목 */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">{text.titleLabel}</label>
                 <input
@@ -371,7 +365,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* 설명 */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">{text.descriptionLabel}</label>
                 <input
@@ -381,7 +374,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* 카테고리 */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">{text.categoryLabel}</label>
                 <select
@@ -389,16 +381,15 @@ export default function Home() {
                   onChange={(e) => setFormCategory(e.target.value as SourceCategory)}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                 >
-                  {(Object.keys(categoryMeta) as SourceCategory[]).map((cat) => (
+                  {(Object.keys(categoryIcons) as SourceCategory[]).map((cat) => (
                     <option key={cat} value={cat}>
-                      {categoryMeta[cat].icon} {text.categories[cat]}
+                      {categoryIcons[cat]} {text.categories[cat]}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* 버튼 */}
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
