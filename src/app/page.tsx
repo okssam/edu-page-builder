@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 type Locale = 'ko' | 'en';
-type SourceCategory = 'chatgpt-gpts' | 'chatgpt-projects' | 'gemini-gems' | 'gemini-projects';
+type SourceCategory = 'chatgpt-gpts' | 'chatgpt-projects' | 'gemini-gems';
 
 type LinkItem = {
   id: string;
@@ -19,7 +19,6 @@ const categoryMeta: Record<SourceCategory, { icon: string; bg: string; border: s
   'chatgpt-gpts': { icon: '🤖', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700' },
   'chatgpt-projects': { icon: '💬', bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700' },
   'gemini-gems': { icon: '💎', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700' },
-  'gemini-projects': { icon: '⚡', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
 };
 
 const labels = {
@@ -32,7 +31,6 @@ const labels = {
     titleLabel: '표시 제목',
     descriptionLabel: '설명 (선택)',
     categoryLabel: '분류',
-    autoTitle: '자동 가져오기',
     addButton: '추가하기',
     cancel: '취소',
     emptyTitle: '아직 등록된 링크가 없어요',
@@ -47,7 +45,6 @@ const labels = {
       'chatgpt-gpts': 'ChatGPT GPTs',
       'chatgpt-projects': 'ChatGPT 프로젝트',
       'gemini-gems': 'Gemini Gems',
-      'gemini-projects': 'Gemini James',
     },
   },
   en: {
@@ -59,7 +56,6 @@ const labels = {
     titleLabel: 'Display title',
     descriptionLabel: 'Description (optional)',
     categoryLabel: 'Category',
-    autoTitle: 'Auto fetch',
     addButton: 'Add',
     cancel: 'Cancel',
     emptyTitle: 'No links yet',
@@ -74,7 +70,6 @@ const labels = {
       'chatgpt-gpts': 'ChatGPT GPTs',
       'chatgpt-projects': 'ChatGPT Projects',
       'gemini-gems': 'Gemini Gems',
-      'gemini-projects': 'Gemini James',
     },
   },
 } as const;
@@ -96,39 +91,10 @@ const starterLinks: LinkItem[] = [
     category: 'chatgpt-projects',
     pinned: false,
   },
-  {
-    id: '3',
-    title: '업무 자동화 James',
-    url: 'https://gemini.google.com/',
-    description: '반복 업무 템플릿과 리서치',
-    category: 'gemini-projects',
-    pinned: false,
-  },
 ];
 
-const STORAGE_KEY = 'okj-ai-links-v2';
-const LOCALE_KEY = 'okj-ai-locale-v2';
-
-// URL에서 카테고리 자동 추론
-function inferCategory(url: string): SourceCategory {
-  const u = url.toLowerCase();
-  if (u.includes('gemini.google.com/gem')) return 'gemini-gems';
-  if (u.includes('gemini.google.com')) return 'gemini-projects';
-  if (u.includes('chatgpt.com/g/g-') || u.includes('chat.openai.com/g/g-')) return 'chatgpt-gpts';
-  if (u.includes('chatgpt.com') || u.includes('chat.openai.com')) return 'chatgpt-projects';
-  return 'chatgpt-gpts';
-}
-
-// 메타데이터 가져오기
-async function fetchMeta(url: string) {
-  try {
-    const res = await fetch(`/api/title?url=${encodeURIComponent(url)}`);
-    if (!res.ok) throw new Error();
-    return await res.json();
-  } catch {
-    return { title: '', description: '' };
-  }
-}
+const STORAGE_KEY = 'okj-ai-links-v3';
+const LOCALE_KEY = 'okj-ai-locale-v3';
 
 export default function Home() {
   const [locale, setLocale] = useState<Locale>('ko');
@@ -137,13 +103,15 @@ export default function Home() {
   const [filter, setFilter] = useState<SourceCategory | 'all'>('all');
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
 
+  // 드래그 앤 드롭 상태
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
   // 모달 폼 상태
   const [formUrl, setFormUrl] = useState('');
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formCategory, setFormCategory] = useState<SourceCategory>('chatgpt-gpts');
-  const [loading, setLoading] = useState(false);
-  const [autoFetched, setAutoFetched] = useState(false);
 
   const text = labels[locale];
 
@@ -176,50 +144,15 @@ export default function Home() {
     return [...pinned, ...normal];
   }, [links, filter]);
 
-  // URL 변경시 자동으로 메타데이터 가져오기
-  async function autoFetchMeta(url: string) {
-    if (!url.startsWith('http') || autoFetched) return;
-    setAutoFetched(true);
-    setLoading(true);
-    const cat = inferCategory(url);
-    setFormCategory(cat);
-    const meta = await fetchMeta(url);
-    if (meta.title) setFormTitle(meta.title.replace(/\s*\|.*$/, '').trim());
-    if (meta.description) setFormDesc(meta.description);
-    setLoading(false);
-  }
-
-  // 수동 자동 가져오기 버튼
-  async function handleAutoFetch() {
-    if (!formUrl) return;
-    setLoading(true);
-    const meta = await fetchMeta(formUrl);
-    const cat = inferCategory(formUrl);
-    if (meta.title) setFormTitle(meta.title.replace(/\s*\|.*$/, '').trim());
-    if (meta.description) setFormDesc(meta.description);
-    setFormCategory(cat);
-    setLoading(false);
-  }
-
   // 링크 추가
-  async function handleAdd() {
-    if (!formUrl.trim()) return;
-    let title = formTitle.trim();
-    let desc = formDesc.trim();
-
-    if (!title) {
-      setLoading(true);
-      const meta = await fetchMeta(formUrl.trim());
-      title = meta.title?.replace(/\s*\|.*$/, '').trim() || formUrl.trim();
-      desc = desc || meta.description || '';
-      setLoading(false);
-    }
+  function handleAdd() {
+    if (!formUrl.trim() || !formTitle.trim()) return;
 
     const item: LinkItem = {
       id: Date.now().toString(),
-      title,
+      title: formTitle.trim(),
       url: formUrl.trim(),
-      description: desc,
+      description: formDesc.trim(),
       category: formCategory,
       pinned: false,
     };
@@ -229,8 +162,23 @@ export default function Home() {
     setFormTitle('');
     setFormDesc('');
     setFormCategory('chatgpt-gpts');
-    setAutoFetched(false);
     setShowModal(false);
+  }
+
+  // 드래그로 카드 순서 변경
+  function handleDrop(targetId: string) {
+    if (!draggingId || draggingId === targetId) return;
+    setLinks((prev) => {
+      const next = [...prev];
+      const fromIdx = next.findIndex((l) => l.id === draggingId);
+      const toIdx = next.findIndex((l) => l.id === targetId);
+      if (fromIdx === -1 || toIdx === -1) return prev;
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, moved);
+      return next;
+    });
+    setDraggingId(null);
+    setDragOverId(null);
   }
 
   function togglePin(id: string) {
@@ -305,15 +253,28 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {displayed.map((item) => {
               const meta = categoryMeta[item.category];
+              const isDragOver = dragOverId === item.id && draggingId !== item.id;
               return (
-                <button
+                <div
                   key={item.id}
+                  draggable
+                  onDragStart={() => setDraggingId(item.id)}
+                  onDragEnd={() => { setDraggingId(null); setDragOverId(null); }}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverId(item.id); }}
+                  onDragLeave={() => setDragOverId(null)}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(item.id); }}
                   onClick={() => window.open(item.url, '_blank')}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     setContextMenu({ id: item.id, x: e.clientX, y: e.clientY });
                   }}
-                  className={`group relative flex aspect-square flex-col items-center justify-center rounded-2xl border-2 ${meta.border} ${meta.bg} p-4 text-center transition hover:-translate-y-1 hover:shadow-lg`}
+                  className={`group relative flex aspect-square cursor-grab flex-col items-center justify-center rounded-2xl border-2 p-4 text-center transition active:cursor-grabbing ${
+                    draggingId === item.id
+                      ? 'opacity-40'
+                      : isDragOver
+                        ? `${meta.bg} ${meta.border} -translate-y-1 shadow-lg ring-2 ring-slate-400`
+                        : `${meta.bg} ${meta.border} hover:-translate-y-1 hover:shadow-lg`
+                  }`}
                 >
                   {/* 고정 표시 */}
                   {item.pinned && (
@@ -339,7 +300,7 @@ export default function Home() {
                   <span className={`mt-3 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${meta.text} ${meta.bg} border ${meta.border}`}>
                     {text.categories[item.category]}
                   </span>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -392,34 +353,12 @@ export default function Home() {
               {/* URL 입력 */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">{text.linkLabel}</label>
-                <div className="flex gap-2">
-                  <input
-                    value={formUrl}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setFormUrl(val);
-                      if (val.startsWith('http')) {
-                        setFormCategory(inferCategory(val));
-                      }
-                    }}
-                    onPaste={(e) => {
-                      // 붙여넣기 시 자동으로 메타데이터 가져오기
-                      const pasted = e.clipboardData.getData('text');
-                      if (pasted.startsWith('http')) {
-                        setTimeout(() => autoFetchMeta(pasted), 100);
-                      }
-                    }}
-                    placeholder="https://..."
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-                  />
-                  <button
-                    onClick={handleAutoFetch}
-                    disabled={loading}
-                    className="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
-                  >
-                    {loading ? '...' : text.autoTitle}
-                  </button>
-                </div>
+                <input
+                  value={formUrl}
+                  onChange={(e) => setFormUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                />
               </div>
 
               {/* 제목 */}
@@ -469,10 +408,9 @@ export default function Home() {
               </button>
               <button
                 onClick={handleAdd}
-                disabled={loading}
-                className="rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+                className="rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
               >
-                {loading ? '...' : text.addButton}
+                {text.addButton}
               </button>
             </div>
           </div>
