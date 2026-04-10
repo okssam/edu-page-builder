@@ -86,4 +86,4 @@ agents/researcher/output/{YYYY-MM-DD}_{주제요약}.md
 ```
 
 ## 참조 파일
-- @sources.md 의 모니터링 소스 목록
+- @agents/researcher/sources.md 의 모니터링 소스 목록

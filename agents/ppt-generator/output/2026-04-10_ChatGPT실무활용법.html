@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>ChatGPT 실무 활용법 - 기업 마케팅팀 교육</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #e8e8e8;
+    }
+
+    .slide {
+      width: 1280px;
+      height: 720px;
+      margin: 24px auto;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+
+    /* ──── 표지 ──── */
+    .slide[data-slide-type="cover"] {
+      background: linear-gradient(135deg, #1E3A5F 0%, #2C5F8A 50%, #4A90D9 100%);
+      display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    }
+    .slide[data-slide-type="cover"] .badge {
+      background: rgba(255,255,255,0.15); border-radius: 24px; padding: 8px 24px;
+      color: rgba(255,255,255,0.9); font-size: 15px; font-weight: 500; margin-bottom: 28px;
+    }
+    .slide[data-slide-type="cover"] h1 { color: #fff; font-size: 52px; font-weight: 700; line-height: 1.3; }
+    .slide[data-slide-type="cover"] .subtitle { color: rgba(255,255,255,0.75); font-size: 22px; margin-top: 12px; }
+    .slide[data-slide-type="cover"] .meta { color: rgba(255,255,255,0.5); font-size: 15px; margin-top: 48px; }
+
+    /* ──── 목표 ──── */
+    .slide[data-slide-type="objectives"] { background: #fff; padding: 60px; }
+    .slide[data-slide-type="objectives"] h2 { color: #1E3A5F; font-size: 36px; font-weight: 700; }
+    .slide[data-slide-type="objectives"] .bar { width: 80px; height: 4px; background: #4A90D9; margin: 12px 0 36px; }
+    .slide[data-slide-type="objectives"] .goal { display: flex; align-items: flex-start; gap: 20px; padding: 20px 0; border-bottom: 1px solid #f0f0f0; }
+    .slide[data-slide-type="objectives"] .goal-num {
+      width: 40px; height: 40px; background: #4A90D9; color: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; flex-shrink: 0;
+    }
+    .slide[data-slide-type="objectives"] .goal-text { font-size: 21px; color: #2C3E50; line-height: 1.5; padding-top: 6px; }
+
+    /* ──── 내용 ──── */
+    .slide[data-slide-type="content"] { background: #fff; padding: 60px; }
+    .slide[data-slide-type="content"] h2 { color: #1E3A5F; font-size: 30px; font-weight: 700; }
+    .slide[data-slide-type="content"] .bar { width: 60px; height: 3px; background: #4A90D9; margin: 10px 0 28px; }
+    .slide[data-slide-type="content"] .cols { display: flex; gap: 36px; }
+    .slide[data-slide-type="content"] .col-main { flex: 6; }
+    .slide[data-slide-type="content"] .col-side { flex: 4; background: #F8F9FA; border-radius: 16px; padding: 28px; }
+    .slide[data-slide-type="content"] ul { list-style: none; }
+    .slide[data-slide-type="content"] ul li {
+      font-size: 19px; color: #2C3E50; padding: 11px 0 11px 28px; position: relative; line-height: 1.6;
+    }
+    .slide[data-slide-type="content"] ul li::before {
+      content: ""; position: absolute; left: 0; top: 18px;
+      width: 8px; height: 8px; background: #4A90D9; border-radius: 50%;
+    }
+    .hl { color: #F39C12; font-weight: 600; }
+    .slide[data-slide-type="content"] .card {
+      background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    }
+    .slide[data-slide-type="content"] .card-title { font-size: 15px; font-weight: 600; color: #1E3A5F; margin-bottom: 6px; }
+    .slide[data-slide-type="content"] .card-body { font-size: 14px; color: #7F8C8D; line-height: 1.5; }
+    .slide[data-slide-type="content"] table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    .slide[data-slide-type="content"] th {
+      background: #1E3A5F; color: #fff; padding: 12px 16px; text-align: left; font-size: 15px; font-weight: 600;
+    }
+    .slide[data-slide-type="content"] td { padding: 12px 16px; font-size: 15px; color: #2C3E50; border-bottom: 1px solid #f0f0f0; }
+    .slide[data-slide-type="content"] tr:nth-child(even) td { background: #F8F9FA; }
+
+    /* ──── 실습 ──── */
+    .slide[data-slide-type="practice"] { background: #E8F5E9; padding: 60px; }
+    .slide[data-slide-type="practice"] h2 { color: #1B5E20; font-size: 30px; font-weight: 700; }
+    .slide[data-slide-type="practice"] .bar { width: 60px; height: 3px; background: #27AE60; margin: 10px 0 24px; }
+    .slide[data-slide-type="practice"] .steps { background: #fff; border-radius: 16px; padding: 28px 32px; }
+    .slide[data-slide-type="practice"] .step { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid #E8F5E9; }
+    .slide[data-slide-type="practice"] .step:last-child { border-bottom: none; }
+    .slide[data-slide-type="practice"] .sn {
+      background: #27AE60; color: #fff; width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0;
+    }
+    .slide[data-slide-type="practice"] .st { font-size: 18px; color: #2C3E50; line-height: 1.6; padding-top: 4px; }
+    .slide[data-slide-type="practice"] .st strong { color: #1B5E20; }
+    .time-badge {
+      position: absolute; bottom: 36px; right: 60px;
+      background: #27AE60; color: #fff; padding: 8px 22px; border-radius: 20px; font-size: 15px; font-weight: 500;
+    }
+
+    /* ──── 요약 ──── */
+    .slide[data-slide-type="summary"] { background: #fff; padding: 60px; }
+    .slide[data-slide-type="summary"] h2 { color: #1E3A5F; font-size: 36px; font-weight: 700; }
+    .slide[data-slide-type="summary"] .bar { width: 80px; height: 4px; background: #4A90D9; margin: 12px 0 32px; }
+    .slide[data-slide-type="summary"] .item { display: flex; align-items: flex-start; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f0f0; }
+    .slide[data-slide-type="summary"] .check { font-size: 22px; flex-shrink: 0; }
+    .slide[data-slide-type="summary"] .item-text { font-size: 21px; color: #2C3E50; line-height: 1.5; }
+
+    /* ──── 공통 ──── */
+    .slide-num { position: absolute; bottom: 20px; right: 40px; font-size: 13px; color: #7F8C8D; }
+  </style>
+</head>
+<body>
+
+  <!-- 1: 표지 -->
+  <section class="slide" data-slide-number="1" data-slide-type="cover">
+    <div class="badge">30분 실무 교육</div>
+    <h1>ChatGPT 실무 활용법</h1>
+    <p class="subtitle">마케팅 업무를 2배 빠르게 처리하는 AI 활용 전략</p>
+    <p class="meta">정옥선 | AI 활용 교육 | 2026.04.10</p>
+  </section>
+
+  <!-- 2: 학습 목표 -->
+  <section class="slide" data-slide-number="2" data-slide-type="objectives">
+    <h2>학습 목표</h2>
+    <div class="bar"></div>
+    <div class="goal"><div class="goal-num">1</div><div class="goal-text">ChatGPT의 핵심 기능과 마케팅 활용 시나리오를 이해한다</div></div>
+    <div class="goal"><div class="goal-num">2</div><div class="goal-text">효과적인 프롬프트 작성법 3가지 원칙을 익힌다</div></div>
+    <div class="goal"><div class="goal-num">3</div><div class="goal-text">실습을 통해 마케팅 실무 결과물을 직접 생성한다</div></div>
+    <div class="goal"><div class="goal-num">4</div><div class="goal-text">일상 업무에 AI를 적용하는 루틴을 설계한다</div></div>
+    <span class="slide-num">2</span>
+  </section>
+
+  <!-- 3: ChatGPT란? -->
+  <section class="slide" data-slide-number="3" data-slide-type="content">
+    <h2>ChatGPT, 마케터에게 왜 중요한가?</h2>
+    <div class="bar"></div>
+    <div class="cols">
+      <div class="col-main">
+        <ul>
+          <li><span class="hl">콘텐츠 초안 작성</span> 시간을 80% 이상 단축</li>
+          <li>고객 페르소나별 <span class="hl">맞춤 메시지</span> 즉시 생성</li>
+          <li>경쟁사 분석, 시장 조사 등 <span class="hl">리서치 보조</span></li>
+          <li>A/B 테스트 카피, 이메일 시퀀스 등 <span class="hl">반복 업무 자동화</span></li>
+          <li>아이디어 브레인스토밍의 <span class="hl">질과 속도</span> 향상</li>
+        </ul>
+      </div>
+      <div class="col-side">
+        <div class="card">
+          <div class="card-title">Before AI</div>
+          <div class="card-body">보도자료 초안 2~3시간<br>SNS 카피 30분/건<br>경쟁사 분석 하루 이상</div>
+        </div>
+        <div class="card">
+          <div class="card-title">After AI</div>
+          <div class="card-body">보도자료 초안 15분<br>SNS 카피 3분/건<br>경쟁사 분석 30분</div>
+        </div>
+      </div>
+    </div>
+    <span class="slide-num">3</span>
+  </section>
+
+  <!-- 4: 프롬프트 3원칙 -->
+  <section class="slide" data-slide-number="4" data-slide-type="content">
+    <h2>프롬프트 작성 3원칙</h2>
+    <div class="bar"></div>
+    <div class="cols">
+      <div class="col-main">
+        <ul>
+          <li><span class="hl">역할 부여</span> - "너는 10년 경력의 마케팅 카피라이터야"</li>
+          <li><span class="hl">구체적 맥락</span> - 대상, 목적, 톤앤매너, 분량을 명시</li>
+          <li><span class="hl">출력 형식 지정</span> - 표, 리스트, 특정 양식으로 요청</li>
+        </ul>
+      </div>
+      <div class="col-side" style="flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px;">
+        <div style="background:#1E3A5F; color:#fff; border-radius:10px; padding:16px; font-size:14px; line-height:1.6;">
+          <strong style="color:#F39C12;">Good Prompt</strong><br>
+          "10년 경력의 마케팅 카피라이터 역할로, 20대 여성 타겟의 새 립스틱 출시 SNS 카피를 3가지 톤(유머/감성/정보)으로 각각 2줄씩 작성해줘"
+        </div>
+        <div style="background:#f8d7da; border-radius:10px; padding:16px; font-size:14px; line-height:1.6; color:#721c24;">
+          <strong>Bad Prompt</strong><br>
+          "립스틱 광고 카피 써줘"
+        </div>
+      </div>
+    </div>
+    <span class="slide-num">4</span>
+  </section>
+
+  <!-- 5: 마케팅 활용 시나리오 -->
+  <section class="slide" data-slide-number="5" data-slide-type="content">
+    <h2>마케팅 실무 활용 시나리오 5선</h2>
+    <div class="bar"></div>
+    <table>
+      <tr><th>시나리오</th><th>활용 방법</th><th>예상 절감 시간</th></tr>
+      <tr><td>SNS 콘텐츠 기획</td><td>월간 콘텐츠 캘린더 + 카피 30건 일괄 생성</td><td>8시간 &rarr; 1시간</td></tr>
+      <tr><td>보도자료 작성</td><td>핵심 정보 입력 &rarr; 보도자료 초안 즉시 생성</td><td>3시간 &rarr; 20분</td></tr>
+      <tr><td>고객 이메일</td><td>세그먼트별 맞춤 이메일 시퀀스 자동 생성</td><td>2시간 &rarr; 15분</td></tr>
+      <tr><td>경쟁사 분석</td><td>경쟁사 웹사이트/SNS 분석 리포트 생성</td><td>1일 &rarr; 30분</td></tr>
+      <tr><td>제안서 구성</td><td>클라이언트별 맞춤 제안서 프레임 생성</td><td>4시간 &rarr; 30분</td></tr>
+    </table>
+    <span class="slide-num">5</span>
+  </section>
+
+  <!-- 6: 실습 1 -->
+  <section class="slide" data-slide-number="6" data-slide-type="practice">
+    <h2>실습 1: SNS 마케팅 카피 생성</h2>
+    <div class="bar"></div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="st">ChatGPT에 접속하여 새 대화를 시작합니다</div></div>
+      <div class="step"><div class="sn">2</div><div class="st"><strong>역할 부여</strong>: "너는 우리 회사의 SNS 마케팅 담당자야" 입력</div></div>
+      <div class="step"><div class="sn">3</div><div class="st"><strong>맥락 제공</strong>: 회사 제품/서비스, 타겟 고객, 톤앤매너를 설명</div></div>
+      <div class="step"><div class="sn">4</div><div class="st"><strong>출력 요청</strong>: "인스타그램용 카피를 5개 생성하되, 각 카피에 해시태그 5개 포함" 요청</div></div>
+      <div class="step"><div class="sn">5</div><div class="st">결과를 검토하고 <strong>"더 캐주얼하게"</strong> 등 피드백으로 개선</div></div>
+    </div>
+    <div class="time-badge">10분</div>
+    <span class="slide-num">6</span>
+  </section>
+
+  <!-- 7: 실습 2 -->
+  <section class="slide" data-slide-number="7" data-slide-type="practice">
+    <h2>실습 2: 경쟁사 분석 리포트 작성</h2>
+    <div class="bar"></div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="st">분석하고 싶은 <strong>경쟁사 3곳</strong>을 선정합니다</div></div>
+      <div class="step"><div class="sn">2</div><div class="st">"마케팅 전략 분석가 역할로, {경쟁사명} 3곳의 마케팅 전략을 비교 분석해줘" 입력</div></div>
+      <div class="step"><div class="sn">3</div><div class="st">분석 항목 지정: <strong>타겟, 채널, 메시지, 차별점</strong>을 표로 정리 요청</div></div>
+      <div class="step"><div class="sn">4</div><div class="st">"우리 회사가 차별화할 수 있는 포인트 3가지를 제안해줘" 후속 질문</div></div>
+    </div>
+    <div class="time-badge">10분</div>
+    <span class="slide-num">7</span>
+  </section>
+
+  <!-- 8: AI 업무 루틴 설계 -->
+  <section class="slide" data-slide-number="8" data-slide-type="content">
+    <h2>내일부터 바로 쓰는 AI 업무 루틴</h2>
+    <div class="bar"></div>
+    <div class="cols">
+      <div class="col-main">
+        <ul>
+          <li><span class="hl">아침 9시</span> - 오늘 할 일 정리를 AI에게 요청</li>
+          <li><span class="hl">오전 업무</span> - 콘텐츠 초안은 AI가, 수정은 내가</li>
+          <li><span class="hl">오후 업무</span> - 리서치/분석 보고서 AI로 빠르게 생성</li>
+          <li><span class="hl">퇴근 전</span> - 내일 업무 브리핑을 AI에게 정리 요청</li>
+        </ul>
+      </div>
+      <div class="col-side">
+        <div style="text-align:center;">
+          <div style="font-size:48px; margin-bottom:12px;">80%</div>
+          <div style="font-size:16px; color:#7F8C8D;">반복 업무 시간 절감<br>가능한 영역</div>
+          <div style="margin-top:20px; font-size:13px; color:#4A90D9; font-weight:500;">핵심은 "AI 초안 + 사람 검수"</div>
+        </div>
+      </div>
+    </div>
+    <span class="slide-num">8</span>
+  </section>
+
+  <!-- 9: 주의사항 -->
+  <section class="slide" data-slide-number="9" data-slide-type="content">
+    <h2>AI 활용 시 주의사항</h2>
+    <div class="bar"></div>
+    <ul>
+      <li><span class="hl">팩트 체크 필수</span> - AI가 생성한 수치, 인용, 날짜는 반드시 검증</li>
+      <li><span class="hl">기밀 정보 주의</span> - 고객 개인정보, 미공개 전략은 입력 금지</li>
+      <li><span class="hl">저작권 확인</span> - AI 생성 콘텐츠도 표절 검사 필요</li>
+      <li><span class="hl">최종 책임은 사람</span> - AI는 보조 도구, 의사결정은 담당자가</li>
+      <li><span class="hl">회사 AI 정책 준수</span> - 사내 AI 사용 가이드라인을 확인하세요</li>
+    </ul>
+    <span class="slide-num">9</span>
+  </section>
+
+  <!-- 10: 요약 & Q&A -->
+  <section class="slide" data-slide-number="10" data-slide-type="summary">
+    <h2>오늘 배운 내용 정리</h2>
+    <div class="bar"></div>
+    <div class="item"><span class="check">1.</span><div class="item-text">ChatGPT는 마케팅 업무의 <strong>속도와 품질</strong>을 동시에 높여준다</div></div>
+    <div class="item"><span class="check">2.</span><div class="item-text">프롬프트 3원칙: <strong>역할 부여 + 구체적 맥락 + 출력 형식</strong></div></div>
+    <div class="item"><span class="check">3.</span><div class="item-text">AI 초안 + 사람 검수 = <strong>최적의 워크플로우</strong></div></div>
+    <div class="item"><span class="check">4.</span><div class="item-text">내일부터 <strong>하나의 업무</strong>에 AI를 적용해보자</div></div>
+    <div style="margin-top: 40px; text-align: center;">
+      <div style="font-size: 28px; color: #4A90D9; font-weight: 600;">Q&A</div>
+      <div style="font-size: 16px; color: #7F8C8D; margin-top: 8px;">궁금한 점이 있으시면 질문해 주세요</div>
+    </div>
+    <span class="slide-num">10</span>
+  </section>
+
+</body>
+</html>

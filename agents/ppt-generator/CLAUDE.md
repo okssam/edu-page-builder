@@ -28,7 +28,7 @@
 목차를 사용자에게 보여주고 확인을 받습니다.
 
 ### 3단계: HTML 슬라이드 생성
-스타일 가이드(@style-guide.md)를 참조하여 각 슬라이드를 HTML로 생성합니다.
+스타일 가이드(@agents/ppt-generator/style-guide.md)를 참조하여 각 슬라이드를 HTML로 생성합니다.
 
 **생성 규칙:**
 - 각 슬라이드는 `<section class="slide">` 태그로 감쌉니다
@@ -39,7 +39,7 @@
 - CSS는 인라인이 아닌 `<style>` 태그에 통합합니다
 
 ### 4단계: 스타일 가이드 적용
-@style-guide.md 에 정의된 디자인 가이드라인을 적용합니다:
+@agents/ppt-generator/style-guide.md 에 정의된 디자인 가이드라인을 적용합니다:
 - 색상 팔레트
 - 폰트 크기 및 계층
 - 레이아웃 규칙
@@ -70,6 +70,6 @@ python3 agents/ppt-generator/convert.py agents/ppt-generator/output/{파일명}.
 총점 80점 이상이면 합격으로 판단합니다.
 
 ## 참조 파일
-- @style-guide.md
-- templates/ 폴더의 HTML 템플릿 예시
-- examples/ 폴더의 결과물 예시
+- @agents/ppt-generator/style-guide.md
+- agents/ppt-generator/templates/ 폴더의 HTML 템플릿 예시
+- agents/ppt-generator/examples/ 폴더의 결과물 예시

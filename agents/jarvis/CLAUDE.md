@@ -41,4 +41,4 @@
 ```
 
 ## 참조 파일
-- @agent-registry.md
+- @agents/jarvis/agent-registry.md

@@ -72,5 +72,5 @@ agents/edu-designer/output/{YYYY-MM-DD}_{고객사명}/
 3. 전체 결과 분석 보고서 생성
 
 ## 참조 파일
-- templates/ 폴더의 교육 설계 양식
-- @evaluation-criteria.md 의 공통 평가 기준
+- agents/edu-designer/templates/ 폴더의 교육 설계 양식
+- @agents/edu-designer/evaluation-criteria.md 의 공통 평가 기준
