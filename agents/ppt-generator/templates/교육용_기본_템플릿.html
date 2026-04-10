@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>AI 에이전트 업무 활용법 - 교육 슬라이드</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+      background: #f0f0f0;
+    }
+
+    .slide {
+      width: 1280px;
+      height: 720px;
+      margin: 20px auto;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    /* 표지 슬라이드 */
+    .slide[data-slide-type="cover"] {
+      background: linear-gradient(135deg, #1E3A5F 0%, #2C5F8A 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .slide[data-slide-type="cover"] h1 {
+      color: #fff;
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .slide[data-slide-type="cover"] p {
+      color: rgba(255,255,255,0.8);
+      font-size: 22px;
+    }
+    .slide[data-slide-type="cover"] .meta {
+      margin-top: 40px;
+      color: rgba(255,255,255,0.6);
+      font-size: 16px;
+    }
+
+    /* 학습 목표 슬라이드 */
+    .slide[data-slide-type="objectives"] {
+      background: #fff;
+    }
+    .slide[data-slide-type="objectives"] h2 {
+      color: #1E3A5F;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .slide[data-slide-type="objectives"] .divider {
+      width: 80px;
+      height: 4px;
+      background: #4A90D9;
+      margin-bottom: 40px;
+    }
+    .slide[data-slide-type="objectives"] ol {
+      list-style: none;
+      counter-reset: objectives;
+    }
+    .slide[data-slide-type="objectives"] ol li {
+      counter-increment: objectives;
+      font-size: 22px;
+      color: #2C3E50;
+      padding: 16px 0;
+      padding-left: 50px;
+      position: relative;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .slide[data-slide-type="objectives"] ol li::before {
+      content: counter(objectives);
+      position: absolute;
+      left: 0;
+      width: 36px;
+      height: 36px;
+      background: #4A90D9;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* 내용 슬라이드 */
+    .slide[data-slide-type="content"] {
+      background: #fff;
+    }
+    .slide[data-slide-type="content"] h2 {
+      color: #1E3A5F;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .slide[data-slide-type="content"] .divider {
+      width: 60px;
+      height: 3px;
+      background: #4A90D9;
+      margin-bottom: 32px;
+    }
+    .slide[data-slide-type="content"] .two-column {
+      display: flex;
+      gap: 40px;
+    }
+    .slide[data-slide-type="content"] .col-left {
+      flex: 6;
+    }
+    .slide[data-slide-type="content"] .col-right {
+      flex: 4;
+      background: #F8F9FA;
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .slide[data-slide-type="content"] ul {
+      list-style: none;
+    }
+    .slide[data-slide-type="content"] ul li {
+      font-size: 20px;
+      color: #2C3E50;
+      padding: 12px 0;
+      padding-left: 24px;
+      position: relative;
+    }
+    .slide[data-slide-type="content"] ul li::before {
+      content: "●";
+      position: absolute;
+      left: 0;
+      color: #4A90D9;
+      font-size: 10px;
+      top: 16px;
+    }
+    .slide[data-slide-type="content"] .highlight {
+      color: #F39C12;
+      font-weight: 600;
+    }
+
+    /* 실습 슬라이드 */
+    .slide[data-slide-type="practice"] {
+      background: #E8F5E9;
+    }
+    .slide[data-slide-type="practice"] h2 {
+      color: #1B5E20;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .slide[data-slide-type="practice"] .divider {
+      width: 60px;
+      height: 3px;
+      background: #27AE60;
+      margin-bottom: 28px;
+    }
+    .slide[data-slide-type="practice"] .steps {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 32px;
+    }
+    .slide[data-slide-type="practice"] .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid #E8F5E9;
+    }
+    .slide[data-slide-type="practice"] .step:last-child {
+      border-bottom: none;
+    }
+    .slide[data-slide-type="practice"] .step-num {
+      background: #27AE60;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .slide[data-slide-type="practice"] .step-text {
+      font-size: 19px;
+      color: #2C3E50;
+      line-height: 1.5;
+    }
+    .slide[data-slide-type="practice"] .time-badge {
+      position: absolute;
+      bottom: 40px;
+      right: 60px;
+      background: #27AE60;
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 16px;
+    }
+
+    /* 요약 슬라이드 */
+    .slide[data-slide-type="summary"] {
+      background: #fff;
+    }
+    .slide[data-slide-type="summary"] h2 {
+      color: #1E3A5F;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .slide[data-slide-type="summary"] .divider {
+      width: 80px;
+      height: 4px;
+      background: #4A90D9;
+      margin-bottom: 36px;
+    }
+    .slide[data-slide-type="summary"] .checklist {
+      list-style: none;
+    }
+    .slide[data-slide-type="summary"] .checklist li {
+      font-size: 22px;
+      color: #2C3E50;
+      padding: 16px 0;
+      padding-left: 40px;
+      position: relative;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .slide[data-slide-type="summary"] .checklist li::before {
+      content: "✅";
+      position: absolute;
+      left: 0;
+      font-size: 20px;
+    }
+
+    /* 슬라이드 번호 */
+    .slide-number {
+      position: absolute;
+      bottom: 24px;
+      right: 40px;
+      font-size: 13px;
+      color: #7F8C8D;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 슬라이드 1: 표지 -->
+  <section class="slide" data-slide-number="1" data-slide-type="cover">
+    <h1>AI 에이전트 업무 활용법</h1>
+    <p>클로드 코드로 반복 업무를 자동화하는 실전 가이드</p>
+    <div class="meta">정옥선 | AI 활용 교육 | 2026.04.10</div>
+  </section>
+
+  <!-- 슬라이드 2: 학습 목표 -->
+  <section class="slide" data-slide-number="2" data-slide-type="objectives">
+    <h2>학습 목표</h2>
+    <div class="divider"></div>
+    <ol>
+      <li>AI 에이전트의 개념과 기존 LLM 활용과의 차이를 이해한다</li>
+      <li>하네스 엔지니어링의 핵심 원리를 파악한다</li>
+      <li>클로드 코드를 활용하여 나만의 업무 에이전트를 설계한다</li>
+      <li>실습을 통해 실제 업무에 적용 가능한 에이전트를 구현한다</li>
+    </ol>
+    <span class="slide-number">2</span>
+  </section>
+
+  <!-- 슬라이드 3: 내용 - AI 에이전트란? -->
+  <section class="slide" data-slide-number="3" data-slide-type="content">
+    <h2>AI 에이전트란?</h2>
+    <div class="divider"></div>
+    <div class="two-column">
+      <div class="col-left">
+        <ul>
+          <li>사전 정의된 <span class="highlight">워크플로우</span>에 따라 스스로 작업을 수행하는 AI</li>
+          <li>단순 질답이 아닌 <span class="highlight">다단계 실행</span>이 가능</li>
+          <li>코드, 문서, 외부 도구를 직접 조작</li>
+          <li>피드백을 통해 <span class="highlight">지속적으로 개선</span> 가능</li>
+        </ul>
+      </div>
+      <div class="col-right">
+        <div style="text-align:center; font-size: 60px;">🤖</div>
+      </div>
+    </div>
+    <span class="slide-number">3</span>
+  </section>
+
+  <!-- 슬라이드 4: 실습 -->
+  <section class="slide" data-slide-number="4" data-slide-type="practice">
+    <h2>🔧 실습: 나의 첫 번째 에이전트 만들기</h2>
+    <div class="divider"></div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">자동화하고 싶은 반복 업무를 하나 선정합니다</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">해당 업무의 처리 단계를 5단계 이내로 정리합니다</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">클로드 코드에서 CLAUDE.md 파일을 작성합니다</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">에이전트를 실행하고 결과물을 검토합니다</div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-text">피드백을 반영하여 에이전트를 개선합니다</div>
+      </div>
+    </div>
+    <div class="time-badge">⏱ 예상 소요: 15분</div>
+    <span class="slide-number">4</span>
+  </section>
+
+  <!-- 슬라이드 5: 요약 -->
+  <section class="slide" data-slide-number="5" data-slide-type="summary">
+    <h2>오늘 배운 내용 정리</h2>
+    <div class="divider"></div>
+    <ul class="checklist">
+      <li>AI 에이전트 = 워크플로우 기반의 자율 실행 AI</li>
+      <li>하네스 엔지니어링 = 프롬프트 + 코드 + 문서로 AI를 규율</li>
+      <li>CLAUDE.md로 에이전트의 동작을 정의할 수 있다</li>
+      <li>피드백 루프를 통해 에이전트는 지속 개선된다</li>
+    </ul>
+    <span class="slide-number">5</span>
+  </section>
+
+</body>
+</html>

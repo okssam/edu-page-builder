@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write",
+      "Edit"
+    ],
+    "deny": []
+  },
+  "env": {
+    "GOOGLE_SHEETS_CREDENTIALS_PATH": "",
+    "GOOGLE_SHEETS_SPREADSHEET_ID": ""
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[자비스] 파일 저장 완료' >> /tmp/jarvis-activity.log"
+          }
+        ]
+      }
+    ]
+  }
+}
