@@ -5,38 +5,36 @@
 사용법:
     python3 sheets_writer.py <input.json>
 
-입력 JSON 형식:
-    [
-        {
-            "date": "2026-04-10",
-            "type": "유튜브",
-            "original": "https://youtu.be/xxx",
-            "title": "AI 에이전트 자동화 사례",
-            "keywords": "AI에이전트, 자동화, 클로드코드",
-            "summary": "업무를 AI 에이전트로 전환하는 구체적 사례",
-            "category": "학습자료"
-        }
-    ]
+인증 방법 (우선순위):
+    1. 서비스 계정: GOOGLE_SHEETS_CREDENTIALS_PATH 환경변수
+    2. API 키: GOOGLE_API_KEY 환경변수 (공개 시트에만 쓰기 가능)
+    3. .env 파일에서 자동 로드
 
 필요 패키지:
-    pip install google-auth google-auth-oauthlib google-api-python-client
-
-환경변수:
-    GOOGLE_SHEETS_CREDENTIALS_PATH: 서비스 계정 JSON 키 경로
-    GOOGLE_SHEETS_SPREADSHEET_ID: 스프레드시트 ID
+    pip install google-auth google-auth-oauthlib google-api-python-client python-dotenv
 """
 
 import json
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
+
+# .env 파일 자동 로드
+env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+if env_path.exists():
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, val = line.split("=", 1)
+                os.environ.setdefault(key.strip(), val.strip())
 
 try:
-    from google.oauth2.service_account import Credentials
     from googleapiclient.discovery import build
 except ImportError:
     print("Google API 패키지가 설치되지 않았습니다.")
-    print("설치: pip install google-auth google-auth-oauthlib google-api-python-client")
+    print("설치: pip install google-api-python-client python-dotenv")
     sys.exit(1)
 
 
@@ -50,21 +48,27 @@ CATEGORY_SHEETS = {
     "기타": "기타",
 }
 
-# 시트 헤더
 HEADERS = ["날짜", "유형", "원본 내용", "제목", "키워드", "요약", "활용 메모"]
-
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
 def get_sheets_service():
     """Google Sheets API 서비스 객체를 생성합니다."""
+    # 방법 1: 서비스 계정
     creds_path = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_PATH")
-    if not creds_path:
-        print("GOOGLE_SHEETS_CREDENTIALS_PATH 환경변수가 설정되지 않았습니다.")
-        sys.exit(1)
+    if creds_path and os.path.exists(creds_path):
+        from google.oauth2.service_account import Credentials
+        SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+        creds = Credentials.from_service_account_file(creds_path, scopes=SCOPES)
+        return build("sheets", "v4", credentials=creds)
 
-    creds = Credentials.from_service_account_file(creds_path, scopes=SCOPES)
-    return build("sheets", "v4", credentials=creds)
+    # 방법 2: API 키
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    if api_key:
+        return build("sheets", "v4", developerKey=api_key)
+
+    print("인증 정보가 없습니다.")
+    print("  .env 파일에 GOOGLE_API_KEY 또는 GOOGLE_SHEETS_CREDENTIALS_PATH를 설정하세요.")
+    sys.exit(1)
 
 
 def ensure_sheet_tabs(service, spreadsheet_id: str):
@@ -76,9 +80,7 @@ def ensure_sheet_tabs(service, spreadsheet_id: str):
     for tab_name in CATEGORY_SHEETS.values():
         if tab_name not in existing_tabs:
             requests.append({
-                "addSheet": {
-                    "properties": {"title": tab_name}
-                }
+                "addSheet": {"properties": {"title": tab_name}}
             })
 
     if requests:
@@ -86,18 +88,16 @@ def ensure_sheet_tabs(service, spreadsheet_id: str):
             spreadsheetId=spreadsheet_id,
             body={"requests": requests},
         ).execute()
-        print(f"새 시트 탭 {len(requests)}개 생성 완료")
+        print(f"  새 시트 탭 {len(requests)}개 생성")
 
     # 각 탭에 헤더가 없으면 추가
     for tab_name in CATEGORY_SHEETS.values():
         result = (
-            service.spreadsheets()
-            .values()
+            service.spreadsheets().values()
             .get(spreadsheetId=spreadsheet_id, range=f"{tab_name}!A1:G1")
             .execute()
         )
-        values = result.get("values", [])
-        if not values:
+        if not result.get("values", []):
             service.spreadsheets().values().update(
                 spreadsheetId=spreadsheet_id,
                 range=f"{tab_name}!A1:G1",
@@ -108,7 +108,6 @@ def ensure_sheet_tabs(service, spreadsheet_id: str):
 
 def write_items(service, spreadsheet_id: str, items: list[dict]):
     """아이템들을 카테고리별 시트에 기록합니다."""
-    # 카테고리별로 그룹화
     by_category: dict[str, list] = {}
     for item in items:
         category = item.get("category", "기타")
@@ -122,10 +121,9 @@ def write_items(service, spreadsheet_id: str, items: list[dict]):
             item.get("title", ""),
             item.get("keywords", ""),
             item.get("summary", ""),
-            "",  # 활용 메모 (빈칸)
+            "",
         ])
 
-    # 각 카테고리 시트에 append
     total = 0
     for tab_name, rows in by_category.items():
         service.spreadsheets().values().append(
@@ -153,7 +151,8 @@ def main():
 
     spreadsheet_id = os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID")
     if not spreadsheet_id:
-        print("GOOGLE_SHEETS_SPREADSHEET_ID 환경변수가 설정되지 않았습니다.")
+        print("GOOGLE_SHEETS_SPREADSHEET_ID가 설정되지 않았습니다.")
+        print("  .env 파일에 추가하거나 setup_google_sheets.py를 먼저 실행하세요.")
         sys.exit(1)
 
     with open(input_path, "r", encoding="utf-8") as f:
@@ -164,11 +163,9 @@ def main():
         return
 
     print(f"총 {len(items)}건을 구글 시트에 기록합니다...")
-
     service = get_sheets_service()
     ensure_sheet_tabs(service, spreadsheet_id)
     total = write_items(service, spreadsheet_id, items)
-
     print(f"\n구글 시트 기록 완료: 총 {total}건")
 
 
