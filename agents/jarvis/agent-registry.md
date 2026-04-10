@@ -10,6 +10,7 @@
 | PPT 생성기 | 강의 슬라이드 및 문서 생성 | PPT, 슬라이드, 발표자료, 문서, 프레젠테이션 | agents/ppt-generator/CLAUDE.md |
 | 교육 설계사 | 맞춤형 교육 과정 및 실습 설계 | 교육, 강의, 실습, 교안, 커리큘럼, 시나리오 | agents/edu-designer/CLAUDE.md |
 | 리서처 | 트렌드 리서치 및 학습 자료 수집 | 리서치, 조사, 트렌드, 분석, 모니터링, 검색 | agents/researcher/CLAUDE.md |
+| 카톡 아카이버 | 카카오톡 내용 수집 → 구글 시트 정리 | 카톡, 카카오톡, 아카이브, 정리, 구글시트 | agents/kakao-archiver/CLAUDE.md |
 
 ## 라우팅 우선순위
 
