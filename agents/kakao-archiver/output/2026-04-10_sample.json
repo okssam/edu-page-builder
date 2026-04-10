@@ -1,0 +1,47 @@
+[
+  {
+    "date": "2026-04-10",
+    "type": "유튜브",
+    "original": "https://youtu.be/example1",
+    "title": "AI 에이전트 업무 자동화 한달 후기",
+    "keywords": "AI에이전트, 클로드코드, 하네스엔지니어링, 자동화, 오픈클로우",
+    "summary": "업무 80%를 AI 에이전트로 전환한 유튜버의 구체적 사례 공유",
+    "category": "학습자료"
+  },
+  {
+    "date": "2026-04-10",
+    "type": "웹사이트",
+    "original": "https://anthropic.com/news/claude-code",
+    "title": "Claude Code 업데이트 - 스케줄 기능 추가",
+    "keywords": "클로드코드, 스케줄, 자동화, 앤트로픽",
+    "summary": "Claude Code에 cron 기반 스케줄 실행 기능이 추가됨",
+    "category": "트렌드"
+  },
+  {
+    "date": "2026-04-10",
+    "type": "메모",
+    "original": "다음 강의에 '프롬프트 3원칙' 실습을 좋은 예시/나쁜 예시 비교로 넣으면 임팩트 있을듯",
+    "title": "",
+    "keywords": "프롬프트, 실습설계, 비교실습",
+    "summary": "프롬프트 3원칙 실습 아이디어",
+    "category": "강의소재"
+  },
+  {
+    "date": "2026-04-10",
+    "type": "유튜브",
+    "original": "https://youtu.be/example2",
+    "title": "바이브코딩으로 나만의 웹사이트 만들기",
+    "keywords": "바이브코딩, 웹개발, 노코드, 클로드",
+    "summary": "비개발자가 Claude Code로 개인 웹사이트를 만드는 과정",
+    "category": "학습자료"
+  },
+  {
+    "date": "2026-04-10",
+    "type": "메모",
+    "original": "오픈클로우로 KTX 좌석 모니터링하는거 구현해보자. ADB+Scrcpy 방식 참고.",
+    "title": "",
+    "keywords": "오픈클로우, KTX, 자동화, ADB",
+    "summary": "KTX 좌석 모니터링 자동화 아이디어",
+    "category": "아이디어"
+  }
+]
